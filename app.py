@@ -21,12 +21,10 @@ st.sidebar.title("About")
 # sidebar markdown 1
 st.sidebar.markdown("""
 ### 🎯 WHAT IT DOES:
-This is a Machine Learning application recognizes seven categories of the Banking Complaints of the 
-customers using Natural Language Processing ,ML model and Transformers, it recognizes the problem faced by the consumer
-by looking at the compliant and categorize it and it finds the emotion and severity of the problem
-based on the context of the compliant. By evaluating the category, emotions and severity of the problem 
-in the consumer's complaint we can prioritize the complaint ticket and resolve the problem for the consumers, which shows the 
-reliablity of the services provided and helps in customer retention for the banks.
+This is a executive toy(tabletop toy) for HR(Human Resources) resume screening. 
+Swiftly you can screen the resumes by uploading job description and resume. This is an AI Agent who 
+finds the best match for your job description with greater accuracy using LLM(OpenAI)
+
 """)
 
 # sidebar markdown 2
