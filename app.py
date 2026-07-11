@@ -84,7 +84,7 @@ with c1:
             res = requests.post(f"{BACKEND_URL}/upload-jd/", files=files)
             if res.status_code == 200:
                 st.session_state.jd_ready = True
-                st.success("Job Description locked into Backend Memory!")
+                st.success("Job Description noted ✅️")
             else:
                 st.error(f"Error checking JD: {res.text}")
 
@@ -99,7 +99,7 @@ with c2:
         if resume_file:
             # We use a custom flag session attribute to avoid hitting the endpoint on every refresh cycle
             if not st.session_state.resume_ready:
-                with st.spinner("Extracting text and removing personal details on backend..."):
+                with st.spinner("the resume📜 is being processed"):
                     files = {"file": (resume_file.name, resume_file.getvalue(), "application/pdf")}
                     res = requests.post(f"{BACKEND_URL}/preprocess-resume/", files=files)
                     if res.status_code == 200:
@@ -109,11 +109,11 @@ with c2:
             
             # Show success message once backend signals data masking is finished
             if st.session_state.resume_ready:
-                st.success("Resume uploaded and preprocessed successfully!")
+                st.success("Resume uploaded and preprocessed successfully! ✅️")
                 
                 # RECRUITER EXPLICIT TRIGGER BUTTON
-                if st.button("Run Match Analysis Engine", type="primary"):
-                    with st.spinner("Requesting semantic review from Gemini Flash..."):
+                if st.button("Run Analysis 👈", type="primary"):
+                    with st.spinner("The files are being processed ⏳"):
                         # Fires off to Route 3 which runs the clean anonymized dataset
                         res = requests.post(f"{BACKEND_URL}/evaluate/")
                         
@@ -122,10 +122,10 @@ with c2:
                             score = data.get("match_percentage", 0)
                             
                             st.write("---")
-                            st.metric("Match Score Assessment", f"{score}%")
+                            st.metric("Match Score %", f"{score}%")
                             
-                            st.markdown("### 📋 Candidate Information")
-                            st.text_input("Extracted Full Name (via LLM)", value=data.get("candidate_name"), disabled=True)
+                            st.markdown("### 📋 Candidate's Information")
+                            st.text_input("Candidate's Full Name", value=data.get("candidate_name"), disabled=True)
                             
                             st.markdown("### 🛠️ Tech Stack Found")
                             st.info(", ".join(data.get("tech_stack_found", [])))
