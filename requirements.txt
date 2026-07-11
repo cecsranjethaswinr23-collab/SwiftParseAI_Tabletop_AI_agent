@@ -1,4 +1,14 @@
-streamlit
+# Backend Framework & Server
+fastapi
+uvicorn
+python-multipart
+
+# Layout-aware PDF structural extraction
 pdfplumber
-openai
+# Modern Google Gemini AI Studio SDK
+google-genai
+# Deterministic environment variables manager
 python-dotenv
+# Frontend UI Framework & Web Requests
+streamlit
+requests
