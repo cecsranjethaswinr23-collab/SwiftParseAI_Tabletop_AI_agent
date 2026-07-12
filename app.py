@@ -64,7 +64,7 @@ will be recognized by the application and prioritize the tickets for immediate r
 
 st.write("---")
 
-BACKEND_URL = "[http://127.0.0.1:8000](http://127.0.0.1:8000)"
+BACKEND_URL = "http://127.0.0.1:8000"
 
 
 if "jd_ready" not in st.session_state:
@@ -72,7 +72,7 @@ if "jd_ready" not in st.session_state:
 if "resume_ready" not in st.session_state:
     st.session_state.resume_ready = False
 
-c1, c2 = st.columns([1, 1.5], gap="large")
+c1, c2 = st.columns([1, 1], gap="large")
 
 # Left Panel - Job Posting configurations
 with c1:
@@ -126,6 +126,12 @@ with c2:
                             
                             st.markdown("### 📋 Candidate's Information")
                             st.text_input("Candidate's Full Name", value=data.get("candidate_name"), disabled=True)
+                            
+                            st.markdown("### 📋 Candidate's Mail Id")
+                            st.text_input("Email Id", value=data.get("email"), disabled=True)
+
+                            st.markdown("### 📋 Candidate's Contact")
+                            st.text_input("Contact Number", value=data.get("phone"), disabled=True)
                             
                             st.markdown("### 🛠️ Tech Stack Found")
                             st.info(", ".join(data.get("tech_stack_found", [])))

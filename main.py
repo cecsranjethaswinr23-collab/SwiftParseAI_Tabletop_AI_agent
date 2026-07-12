@@ -10,7 +10,7 @@ from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 
-from app.llm_prompt import SYSTEM_PROMPT
+from llm_prompt import SYSTEM_PROMPT
 
 # dependancies
 #---------------------------------------------------------------------------------------------------------->
@@ -56,7 +56,12 @@ async def upload_job_description(file: UploadFile = File(...)):
 async def preprocess_resume(file: UploadFile = File(...)):
     # Extract the raw text stream
     raw_resume = extract_pdf_text(file)
+
+    email_match = re.search(email_regex, raw_resume)
+    phone_match = re.search(phnumb_regex, raw_resume)
     
+    contents["cached_email"] = email_match.group(0) if email_match else "Not Found"
+    contents["cached_phone"] = phone_match.group(0) if phone_match else "Not Found"
     # Securely mask the phone number and email instantly before saving to session memory
     # This guarantees that sensitive contact coordinates never leave your machine
     masked_text = re.sub(email_regex, "[EMAIL]", raw_resume)
@@ -74,12 +79,12 @@ async def evaluate_match():
         raise HTTPException(status_code=400, detail="Missing preprocessed candidate data stream.")
         
     try:
-        user_content = f"JOB DESCRIPTION:\n{contents['active_jd_text']}\n\nRESUME:\n{contents['masked_resume_text']}"
+        instance_content = f"JOB DESCRIPTION:\n{contents['active_jd_text']}\n\nRESUME:\n{contents['masked_resume_text']}"
         
         # Call Gemini using the recommended flash model configuration
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=user_content,
+            model='gemini-3.5-flash',
+            contents=instance_content,
             config=types.GenerateContentConfig(
                 system_instruction=SYSTEM_PROMPT,
                 response_mime_type="application/json", # Forces Gemini to return pure valid JSON
@@ -89,6 +94,10 @@ async def evaluate_match():
         
         # Load string block directly into standard JSON mapping dictionary
         result_data = json.loads(response.text)
+
+        result_data["email"] = contents["cached_email"]
+        result_data["phone"] = contents["cached_phone"]
+        
         return result_data
 
     except Exception as e:
