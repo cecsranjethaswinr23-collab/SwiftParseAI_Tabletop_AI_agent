@@ -4,6 +4,7 @@ Evaluate if the candidate is a good fit based on:
 - Whether at least 60% of the required skills are present.
 - Whether the work experience is within the acceptable range, with a tolerance of +/- 2 years of work experience. Anything outside this range should be considered a mismatch and the candidate should be rejected.
 - Validate logically whether the technologies or tools known by the candidate will be suitable or similiar to the job description. For example, if the job description requires CI/CD and the candidate has DevOps experience, consider it a match. This kind of scenario applies to technical and non technical roles too.
+- If wrongly some other text have been given to you in the job description and in the resume, notify that those are not relevant for the job.
 
 Your task is to read the very top of the resume text to identify the candidate's actual full name. And in the summary give your suggestion of the candidate based on 
 their education, skills, experience, certifications if mentioned and how suitable the person is for the job. And even if the person is less match but you think they 
