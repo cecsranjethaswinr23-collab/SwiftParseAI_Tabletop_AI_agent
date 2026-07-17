@@ -17,10 +17,10 @@ st.sidebar.title("About")
 # sidebar markdown 1
 st.sidebar.markdown("""
 ### 🎯 WHAT IT DOES:
-This is a executive toy(tabletop toy) for HR(Human Resources) resume screening. 
+This is a executive toy(tabletop toy) for HR(Human Resources)to screen resume. 
 Swiftly you can screen the resumes by uploading job description and resume. This is an AI Agent who 
-finds the best match of resume for your job description with greater accuracy using LLM(OpenAI). Just 
-upload a resume and a JD and its done !!!
+finds the best match of resume for your job description with greater accuracy using LLM(Gemini AI). Just 
+upload a JD, a resume and hit the button and its done !!!
 """)
 
 # sidebar markdown 2
@@ -31,8 +31,10 @@ The uploading job description and rsume have to be .pdf file.
 st.sidebar.subheader("🛠️ Tech Stack")
 tech_stack = [
     "Python",
-    "Scikit-Learn",
     "Streamlit",
+    "FastAPI",
+    "Py PDF Plumber",
+    "Gemini AI"
 ]
 for tech in tech_stack:
     st.sidebar.markdown(f"- **{tech}**")
@@ -57,9 +59,13 @@ st.sidebar.markdown("""
 
 # 1. title
 st.title("SwiftParse AI 🤖")
-st.subheader("Professional single-call pipeline optimized for privacy and latency.")
-st.markdown(""" This application recognizes the severity of your problem and categorize it. The complaints with high risk for the consumers
-will be recognized by the application and prioritize the tickets for immediate resolving of the problem for better consumer services...
+st.subheader("Professional Resume screening AI application")
+st.markdown("""SwiftParse AI is a candidate screening application that leverages FastAPI and Google Gemini 
+to evaluate applicant resumes while securely scrubbing sensitive contact details (emails and phone numbers) locally before 
+any data leaves your system.
+
+To use it, upload your target Job Description on the left to lock the hiring criteria, drop a candidate resume on the 
+right to trigger instant automated preprocessing, and hit it to securely render a centered, comprehensive talent evaluation.
 """)
 
 st.write("---")
@@ -79,7 +85,7 @@ with c1:
     st.header("Upload Job Description")
     jd_file = st.file_uploader("Choose JD .pdf", type=["pdf"], key="jd_file_picker")
     if jd_file:
-        if st.button("💡Configure the JOB PROFILE💡"):
+        if st.button("Configure the JOB PROFILE💡"):
             files = {"file": (jd_file.name, jd_file.getvalue(), "application/pdf")}
             res = requests.post(f"{BACKEND_URL}/upload-jd/", files=files)
             if res.status_code == 200:
@@ -88,18 +94,16 @@ with c1:
             else:
                 st.error(f"Error checking JD: {res.text}")
 
-# Right Panel - Candidate screening operations loop
+# ... (Keep your existing import and file upload column layout code exactly the same) ...
+
 with c2:
     st.header("Upload Resume")
     if st.session_state.jd_ready:
-        resume_file = st.file_uploader("Choose Candidate's Resume .pdf", type=["pdf"], key="resume_file_picker")
+        resume_file = st.file_uploader("Choose Candidate Resume PDF", type=["pdf"], key="resume_file_picker")
         
-        # AUTOMATIC PREPROCESSING ACTIVATION
-        # When a file is dropped into the container slot, this logic triggers right away
         if resume_file:
-            # We use a custom flag session attribute to avoid hitting the endpoint on every refresh cycle
             if not st.session_state.resume_ready:
-                with st.spinner("the resume📜 is being processed"):
+                with st.spinner("Acknowledging the Resume"):
                     files = {"file": (resume_file.name, resume_file.getvalue(), "application/pdf")}
                     res = requests.post(f"{BACKEND_URL}/preprocess-resume/", files=files)
                     if res.status_code == 200:
@@ -107,45 +111,52 @@ with c2:
                     else:
                         st.error(f"Preprocessing failed: {res.text}")
             
-            # Show success message once backend signals data masking is finished
             if st.session_state.resume_ready:
-                st.success("Resume uploaded and preprocessed successfully! ✅️")
+                st.success("Resume uploaded and preprocessed successfully!")
                 
-                # RECRUITER EXPLICIT TRIGGER BUTTON
-                if st.button("Run Analysis 👈", type="primary"):
-                    with st.spinner("The files are being processed ⏳"):
-                        # Fires off to Route 3 which runs the clean anonymized dataset
-                        res = requests.post(f"{BACKEND_URL}/evaluate/")
-                        
-                        if res.status_code == 200:
-                            data = res.json()
-                            score = data.get("match_percentage", 0)
-                            
-                            st.write("---")
-                            st.metric("Match Score %", f"{score}%")
-                            
-                            st.markdown("### 📋 Candidate's Information")
-                            st.text_input("Candidate's Full Name", value=data.get("candidate_name"), disabled=True)
-                            
-                            st.markdown("### 📋 Candidate's Mail Id")
-                            st.text_input("Email Id", value=data.get("email"), disabled=True)
-
-                            st.markdown("### 📋 Candidate's Contact")
-                            st.text_input("Contact Number", value=data.get("phone"), disabled=True)
-                            
-                            st.markdown("### 🛠️ Tech Stack Found")
-                            st.info(", ".join(data.get("tech_stack_found", [])))
-                            
-                            st.markdown("### 🔍 Missing Requirements")
-                            st.warning(", ".join(data.get("missing_critical_skills", [])) or "None!")
-                            
-                            st.markdown("### 📝 Analysis Summary")
-                            st.write(data.get("summary"))
-                        else:
-                            st.error(f"Evaluation pipeline error: {res.text}")
-                            
-        # Reset ready-state conditions if the user cancels out the file completely
+                # --- CHANGE HERE: Capture button click as a variable inside column 2 ---
+                trigger_analysis = st.button("Run Analysis", type="primary")
         else:
             st.session_state.resume_ready = False
     else:
         st.info("Please set up the Job Description on the left side to get started.")
+
+
+# =========================================================================
+#  NEW: EXPLICITLY OUTSIDE THE COLUMNS BLOCK (CENTERED RESULTS SECTION)
+# =========================================================================
+if st.session_state.jd_ready and st.session_state.resume_ready and 'trigger_analysis' in locals() and trigger_analysis:
+    st.write("---")
+    
+    # We use empty side-columns to perfectly force our results into a wide center card layout
+    _, center_layout, _ = st.columns([0.15, 0.7, 0.15])
+    
+    with center_layout:
+        with st.spinner("Requesting semantic review from Gemini..."):
+            res = requests.post(f"{BACKEND_URL}/evaluate/")
+            
+            if res.status_code == 200:
+                data = res.json()
+                score = data.get("match_percentage", 0)
+                
+                st.markdown("<h2 style='text-align: center;'>Pipeline Diagnostic Metrics</h2>", unsafe_allow_html=True)
+                st.metric("Match Score Assessment", f"{score}%")
+                
+                st.markdown("### 📋 Candidate Information")
+                st.text_input("Extracted Full Name (via LLM)", value=data.get("candidate_name"), disabled=True)
+                
+                # Render the regex extracted contact info alongside the centered results
+                rc1, rc2 = st.columns(2)
+                rc1.text_input("Extracted Contact Email (Regex)", value=data.get("email"), disabled=True)
+                rc2.text_input("Extracted Phone Number (Regex)", value=data.get("phone"), disabled=True)
+                
+                st.markdown("### 🛠️ Tech Stack Found")
+                st.info(", ".join(data.get("tech_stack_found", [])))
+                
+                st.markdown("### 🔍 Missing Requirements")
+                st.warning(", ".join(data.get("missing_critical_skills", [])) or "None!")
+                
+                st.markdown("### 📝 Analysis Summary")
+                st.write(data.get("summary"))
+            else:
+                st.error(f"Evaluation pipeline error: {res.text}") 
