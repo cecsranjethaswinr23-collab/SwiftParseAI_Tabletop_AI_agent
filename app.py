@@ -72,7 +72,7 @@ st.write("---")
 
 BACKEND_URL = "http://127.0.0.1:8000"
 
-
+ # initially given false, then given true after the fastapi response
 if "jd_ready" not in st.session_state:
     st.session_state.jd_ready = False
 if "resume_ready" not in st.session_state:
@@ -80,10 +80,9 @@ if "resume_ready" not in st.session_state:
 
 c1, c2 = st.columns([1, 1], gap="large")
 
-# Left Panel - Job Posting configurations
 with c1:
     st.header("Upload Job Description")
-    jd_file = st.file_uploader("Choose JD .pdf", type=["pdf"], key="jd_file_picker")
+    jd_file = st.file_uploader("Choose JD .pdf", type=["pdf"], key="jd_file")
     if jd_file:
         if st.button("Configure the JOB PROFILE💡"):
             files = {"file": (jd_file.name, jd_file.getvalue(), "application/pdf")}
@@ -94,12 +93,11 @@ with c1:
             else:
                 st.error(f"Error checking JD: {res.text}")
 
-# ... (Keep your existing import and file upload column layout code exactly the same) ...
 
 with c2:
     st.header("Upload Resume")
     if st.session_state.jd_ready:
-        resume_file = st.file_uploader("Choose Candidate Resume PDF", type=["pdf"], key="resume_file_picker")
+        resume_file = st.file_uploader("Choose Resume .pdf", type=["pdf"], key="resume_file ")
         
         if resume_file:
             if not st.session_state.resume_ready:
@@ -114,7 +112,7 @@ with c2:
             if st.session_state.resume_ready:
                 st.success("Resume uploaded and preprocessed successfully!")
                 
-                # --- CHANGE HERE: Capture button click as a variable inside column 2 ---
+                
                 trigger_analysis = st.button("Run Analysis", type="primary")
         else:
             st.session_state.resume_ready = False
@@ -122,9 +120,7 @@ with c2:
         st.info("Please set up the Job Description on the left side to get started.")
 
 
-# =========================================================================
-#  NEW: EXPLICITLY OUTSIDE THE COLUMNS BLOCK (CENTERED RESULTS SECTION)
-# =========================================================================
+
 if st.session_state.jd_ready and st.session_state.resume_ready and 'trigger_analysis' in locals() and trigger_analysis:
     st.write("---")
     
@@ -143,12 +139,12 @@ if st.session_state.jd_ready and st.session_state.resume_ready and 'trigger_anal
                 st.metric("Match Score Assessment", f"{score}%")
                 
                 st.markdown("### 📋 Candidate Information")
-                st.text_input("Extracted Full Name (via LLM)", value=data.get("candidate_name"), disabled=True)
+                st.text_input("Candidate's Name", value=data.get("candidate_name"), disabled=True)
                 
                 # Render the regex extracted contact info alongside the centered results
-                rc1, rc2 = st.columns(2)
-                rc1.text_input("Extracted Contact Email (Regex)", value=data.get("email"), disabled=True)
-                rc2.text_input("Extracted Phone Number (Regex)", value=data.get("phone"), disabled=True)
+                
+                st.text_input("Candidate's Email", value=data.get("email"), disabled=True)
+                st.text_input("Candidate's contact Number", value=data.get("phone"), disabled=True)
                 
                 st.markdown("### 🛠️ Tech Stack Found")
                 st.info(", ".join(data.get("tech_stack_found", [])))

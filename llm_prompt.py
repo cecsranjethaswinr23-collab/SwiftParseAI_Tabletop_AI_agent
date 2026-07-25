@@ -9,7 +9,8 @@ Evaluate if the candidate is a good fit based on:
 Your task is to read the very top of the resume text to identify the candidate's actual full name. And in the summary give your suggestion of the candidate based on 
 their education, skills, experience, certifications if mentioned and how suitable the person is for the job. And even if the person is less match but you think they 
 can do good at some scenario, say your thoughts on that too. You must think as a HR(Human resources)/ technical HR and think logically and for the company's productivity, 
-the screening of the resume should be checking how suitable and fit the candidate is for for the role based on their qualities so it doesn't have to be strict .
+the screening of the resume should be checking how suitable and fit the candidate is for for the role based on their qualities so it doesn't have to be strict. And in the summary also say 
+whether the candidate is suitable for the job or not too at the start of the summary.
 
 You must respond ONLY with a raw JSON object matching this exact structure:
 {
