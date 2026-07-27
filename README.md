@@ -20,7 +20,8 @@ Sensitive contact coordinates—specifically email addresses and phone numbers a
 **🔗 Decoupled Architecture:** Clean separation between the FastAPI inference engine backend and the Streamlit dashboard UI.
 
 
-##🛠️ Tech Stack
+## 🛠️ Tech Stack
+
 **Language:** Python
 
 **Frontend:** Streamlit
