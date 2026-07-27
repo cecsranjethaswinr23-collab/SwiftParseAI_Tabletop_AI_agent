@@ -1,4 +1,4 @@
-#🤖 SwiftParseAI_Tabletop_AI_agent
+# 🤖 SwiftParseAI_Tabletop_AI_agent
 SwiftParseA is an intelligent, privacy-focused talent evaluation platform built with FastAPI, Streamlit, and Google Gemini. It automates candidate resume screening against job descriptions while enforcing strict local PII (Personally Identifiable Information) masking.
 
 Sensitive contact coordinates—specifically email addresses and phone numbers are stripped locally using Regex before the resume text is transmitted to the LLM. Gemini evaluates skills and match percentages and extracts the candidate's name, while contact informations remains safely isolated within your local environment.
@@ -19,7 +19,8 @@ Sensitive contact coordinates—specifically email addresses and phone numbers a
 
 **🔗 Decoupled Architecture:** Clean separation between the FastAPI inference engine backend and the Streamlit dashboard UI.
 
-🛠️ Tech Stack
+
+##🛠️ Tech Stack
 **Language:** Python
 
 **Frontend:** Streamlit
