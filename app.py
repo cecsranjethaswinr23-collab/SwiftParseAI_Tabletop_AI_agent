@@ -143,7 +143,7 @@ if st.session_state.jd_ready and st.session_state.resume_ready and 'trigger_anal
                 
                 # Render the regex extracted contact info alongside the centered results
                 
-                st.text_input("Candidate's Email", value=data.get("email"), disabled=True)
+                st.text_input(" ✍🏻 Candidate's Email", value=data.get("email"), disabled=True)
                 st.text_input("Candidate's contact Number", value=data.get("phone"), disabled=True)
                 
                 st.markdown("### 🛠️ Tech Stack Found")
