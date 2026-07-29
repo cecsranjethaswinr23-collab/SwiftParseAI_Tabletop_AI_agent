@@ -30,8 +30,8 @@ jobs:
       # 4. Build Docker image & Push to ECR
       - name: Build and Push Docker Image
         run: |
-          docker build -t ${{ secrets.ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest .
-          docker push ${{ secrets.ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+          docker build -t ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest .
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
 
       # 5. SSH into EC2 and run updated container
       - name: Deploy to EC2 via SSH
@@ -41,13 +41,13 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_LOGIN_URI }}
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
             docker stop swiftparseai-container || true
             docker rm swiftparseai-container || true
-            docker pull ${{ secrets.ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+            docker pull ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
             docker run -d \
               --name swiftparseai-container \
               -p 7860:7860 \
               -p 8000:8000 \
               -e GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
-              ${{ secrets.ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+              ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
