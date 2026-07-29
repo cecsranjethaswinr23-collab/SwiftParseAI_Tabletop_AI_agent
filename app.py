@@ -70,7 +70,16 @@ right to trigger instant automated preprocessing, and hit it to securely render 
 
 st.write("---")
 
-BACKEND_URL = "http://127.0.0.1:8000"
+# BACKEND_URL = "http://127.0.0.1:8000"
+BACKEND_URL = os.getenv("FASTAPI_URL", "http://127.0.0.1:8000")
+
+# helper function to handle API calls without crashing
+def safe_post(endpoint, files=None):
+    try:
+        return requests.post(f"{BACKEND_URL}{endpoint}", files=files, timeout=60)
+    except requests.exceptions.ConnectionError:
+        st.error("⚠️ Backend starting up or unreachable. Please wait 3 seconds and try again.")
+        return None
 
  # initially given false, then given true after the fastapi response
 if "jd_ready" not in st.session_state:
@@ -86,7 +95,8 @@ with c1:
     if jd_file:
         if st.button("Configure the JOB PROFILE💡"):
             files = {"file": (jd_file.name, jd_file.getvalue(), "application/pdf")}
-            res = requests.post(f"{BACKEND_URL}/upload-jd/", files=files)
+            # res = requests.post(f"{BACKEND_URL}/upload-jd/", files=files)
+            res = safe_post("/upload-jd/", files=files) # for nginx
             if res.status_code == 200:
                 st.session_state.jd_ready = True
                 st.success("Job Description noted ✅️")
@@ -103,7 +113,8 @@ with c2:
             if not st.session_state.resume_ready:
                 with st.spinner("Acknowledging the Resume"):
                     files = {"file": (resume_file.name, resume_file.getvalue(), "application/pdf")}
-                    res = requests.post(f"{BACKEND_URL}/preprocess-resume/", files=files)
+                    # res = requests.post(f"{BACKEND_URL}/preprocess-resume/", files=files)
+                    res = safe_post("/preprocess-resume/", files=files)
                     if res.status_code == 200:
                         st.session_state.resume_ready = True
                     else:
@@ -129,7 +140,8 @@ if st.session_state.jd_ready and st.session_state.resume_ready and 'trigger_anal
     
     with center_layout:
         with st.spinner("Requesting semantic review from Gemini..."):
-            res = requests.post(f"{BACKEND_URL}/evaluate/")
+            # res = requests.post(f"{BACKEND_URL}/evaluate/")
+            res = safe_post("/evaluate/")
             
             if res.status_code == 200:
                 data = res.json()
