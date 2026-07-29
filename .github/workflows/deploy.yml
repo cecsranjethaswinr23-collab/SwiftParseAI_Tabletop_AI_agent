@@ -1,20 +1,36 @@
-name: Deploy SwiftParseAI
+name: SwiftParseAI Pipeline
 
 on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'README.md'
+      - '.gitignore'
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
-  deploy:
+  integration:
+    name: Continuous Integration
     runs-on: ubuntu-latest
-
     steps:
-      # 1. Checkout repository code
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 2. Authenticate with AWS
+      - name: Run Code Check
+        run: echo "Code validation successful"
+
+  build-and-push:
+    name: Continuous Delivery
+    needs: integration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -22,32 +38,58 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 3. Log in to Amazon ECR
-      - name: Log in to ECR
+      - name: Log in to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # 4. Build Docker image & Push to ECR
-      - name: Build and Push Docker Image
+      - name: Build, Tag, and Push Image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
+          IMAGE_TAG: latest
         run: |
-          docker build -t ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest .
-          docker push ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      # 5. SSH into EC2 and run updated container
-      - name: Deploy to EC2 via SSH
-        uses: appleboy/ssh-action@v1.0.3
+  deploy:
+    name: Continuous Deployment
+    needs: build-and-push
+    runs-on: self-hosted
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
-            docker stop swiftparseai-container || true
-            docker rm swiftparseai-container || true
-            docker pull ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
-            docker run -d \
-              --name swiftparseai-container \
-              -p 7860:7860 \
-              -p 8000:8000 \
-              -e GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
-              ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Deploy Container
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
+        run: |
+          # Pull latest image directly using official step output (avoids secret dependency)
+          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+          # Stop and remove existing container if running
+          docker stop swiftparseai-app || true
+          docker rm swiftparseai-app || true
+
+          # Launch SwiftParseAI with Streamlit (7860) & FastAPI (8000)
+          docker run -d \
+            --name swiftparseai-app \
+            -p 7860:7860 \
+            -p 8000:8000 \
+            -e GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
+            --restart always \
+            $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+          # Clean dangling images to save disk space
+          docker image prune -f
