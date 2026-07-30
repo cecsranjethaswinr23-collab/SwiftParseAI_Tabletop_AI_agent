@@ -7,8 +7,17 @@ Sensitive contact coordinates—specifically email addresses and phone numbers a
 
 ### User Interface
 
+*The web interface allows users to upload job_description.pdf first then resume.pdf,and configure and give you a industry level and logical analysis of the resume against the job description*
+![alt text](image.png)
+
 ### Output Interface
 
+*Here, a resume not suitable for the job description is uploaded to get summary and comments on it.*
+*Output image 1 (Personal details)*
+![alt text](image-1.png)
+
+*Output image 2 (summary of the analysis)*
+![alt text](image-2.png)
 
 ## 🌟 Key Features
 **👾 Local PII Redaction:** Email id and phone numbers are intercepted, extracted, and replaced with [REDACTED] markers locally before external API transmission.
